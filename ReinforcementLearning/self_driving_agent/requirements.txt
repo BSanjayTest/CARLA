@@ -1,0 +1,35 @@
+# CARLA Self-Driving Agent Requirements
+
+# Core Machine Learning Libraries
+torch>=1.9.0
+torchvision>=0.10.0
+torchaudio>=0.9.0
+
+# Computer Vision
+opencv-python>=4.5.0
+
+# Scientific Computing
+numpy>=1.21.0
+
+# Visualization and GUI
+pygame>=2.0.0
+pillow>=8.0.0
+
+# Additional utilities
+matplotlib>=3.3.0
+scipy>=1.7.0
+
+# Note: CARLA Python API should be installed separately
+# Copy from your CARLA installation: PythonAPI/carla/ -> ./carla/
+
+
+
+
+
+
+
+
+
+
+
+
