@@ -27,13 +27,49 @@ Press the number keys to switch between different sensor views:
 - `9`: **Full Sensor Suite (GPS/IMU Data Overlay)**
 - `ESC`: Clean Quit & Simulator Reset
 
-## 🛠️ Getting Started
-1. **Prerequisites**: Ensure CARLA Simulator is running.
-2. **Training**: Run `python train.py` to start the reinforcement learning process.
-3. **Evaluation**: Run `python main.py` to test the agent using the latest trained weights.
-4. **Cleanup**: Run `python force_cleanup.py` if the simulator becomes unresponsive.
+## 🛠️ Installation & Running
 
-## � Data Analysis
+### Prerequisites
+1. **CARLA Simulator** - Download and install from https://carla.org/
+2. **Python 3.12** or higher
+
+### Setup Steps
+
+```bash
+# 1. Create a virtual environment
+python -m venv venv
+
+# 2. Activate the environment
+# On Windows:
+venv\Scripts\activate
+# On Linux/Mac:
+source venv/bin/activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Go to the project directory
+cd self_driving_agent
+```
+
+### Running the Project
+
+**Training (to improve the model):**
+```bash
+python train.py
+```
+
+**Evaluation (to test the trained model):**
+```bash
+python main.py
+```
+
+**Cleanup (if simulator becomes unresponsive):**
+```bash
+python force_cleanup.py
+```
+
+## 📊 Data Analysis
 All training data is saved to `training_log.csv`. This data can be used to generate graphs for:
 - Reward vs. Episode (Proof of Learning)
 - Average Lane Distance (Path Accuracy)
@@ -54,6 +90,29 @@ If you are running on a 16GB RAM laptop or an Apple Silicon MacBook (M1/M2/M3), 
 2. **Reduce Sensor Load**: In `config.py`, reduce `num_other_vehicles` to 5 and `num_pedestrians` to 0 to lower CPU overhead.
 3. **Resolution**: The Pygame window is set to 800x600; keeping this small helps performance.
 4. **MacBook Note**: CARLA is primarily developed for Windows/Linux. For Mac, it is recommended to run CARLA inside a **Docker container** or use the experimental Mac builds if available.
+
+## 📁 Repository Structure
+```
+self_driving_agent/
+├── train.py              # Training script
+├── main.py               # Evaluation script
+├── environment.py         # Carla environment
+├── config.py             # Configuration
+├── utils.py              # Utility functions
+├── controllers.py        # Vehicle controllers
+├── synch_mode.py         # Synchronous mode
+├── force_cleanup.py      # Cleanup utility
+├── requirements.txt      # Dependencies
+├── training_log.csv     # Training log
+├── DQN_Control/         # Neural network code
+│   ├── model.py
+│   ├── replay_buffer.py
+│   └── process_img.py
+└── weights/             # Trained model weights
+    ├── model_ep_50_*
+    ├── model_ep_100_*
+    └── model_ep_150_*
+```
 
 ---
 *Developed as a Final Year Engineering Project.*
