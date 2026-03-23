@@ -1,10 +1,25 @@
 import torch
+import sys
 
+# Allow running specific scenario via command line argument
+# Usage: python train.py ClearNight
+# Or: python train.py (uses config.py settings)
+scenario_arg = sys.argv[1] if len(sys.argv) > 1 else None
+
+# Show available scenarios if requested
+if len(sys.argv) > 1 and sys.argv[1] == '--help':
+    from config import WEATHER_PRESETS
+    print("Available weather scenarios:")
+    for s in WEATHER_PRESETS.keys():
+        print(f"  - {s}")
+    print("\nUsage: python train.py <scenario>")
+    print("Example: python train.py ClearNight")
+    sys.exit(0)
 
 from DQN_Control.replay_buffer import ReplayBuffer
 from DQN_Control.model import DQN
 
-from config import action_map, env_params, TRAINING_SCENARIOS, TRAINING_SCENARIO
+from config import action_map, env_params, TRAINING_SCENARIOS, TRAINING_SCENARIO, WEATHER_PRESETS
 from utils import *
 from environment import SimEnv
 
@@ -13,8 +28,12 @@ def run():
     env = None
     try:
         # Determine scenarios to train on
-        scenarios = TRAINING_SCENARIOS if isinstance(TRAINING_SCENARIOS, list) else [TRAINING_SCENARIO]
-        print(f"Training on scenarios: {scenarios}")
+        if scenario_arg and scenario_arg in WEATHER_PRESETS:
+            scenarios = [scenario_arg]
+            print(f"Running single scenario from command line: {scenario_arg}")
+        else:
+            scenarios = TRAINING_SCENARIOS if isinstance(TRAINING_SCENARIOS, list) else [TRAINING_SCENARIO]
+            print(f"Training on scenarios: {scenarios}")
         
         # Create weights directory if it doesn't exist
         os.makedirs('weights', exist_ok=True)
