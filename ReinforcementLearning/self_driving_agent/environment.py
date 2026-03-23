@@ -22,7 +22,7 @@ from utils import *
 random.seed(78)
 
 class SimEnv(object):
-    def __init__(self, 
+    def __init__(self,
         visuals=True,
         target_speed = 30,
         max_iter = 4000,
@@ -33,8 +33,9 @@ class SimEnv(object):
         max_dist_from_waypoint = 20,
         num_other_vehicles=3,
         num_pedestrians=10,
-        weather_types=['Clear', 'Cloudy', 'Rain', 'Fog'],
-        vehicle_types=['vehicle.nissan.patrol', 'vehicle.tesla.model3', 'vehicle.ford.mustang', 'vehicle.bmw.isetta']
+        weather_preset='ClearNoon',  # CARLA weather preset name
+        vehicle_types=['vehicle.nissan.patrol', 'vehicle.tesla.model3', 'vehicle.ford.mustang', 'vehicle.bmw.isetta'],
+        log_file='training_log.csv'  # Custom log file path
     ) -> None:
         self.visuals = visuals
         if self.visuals:
@@ -102,8 +103,8 @@ class SimEnv(object):
         # Enhanced environment parameters - assign before using
         self.num_other_vehicles = num_other_vehicles
         self.num_pedestrians = num_pedestrians
-        self.weather_types = weather_types
-        self.current_weather = None
+        self.weather_preset = weather_preset
+        self.current_weather = weather_preset
         self.other_vehicles = []
         self.npc_controllers = []
         self.walkers = []
@@ -138,7 +139,7 @@ class SimEnv(object):
         self.average_rewards_list = []
         
         # Telemetry Logging
-        self.log_file = 'training_log.csv'
+        self.log_file = log_file
         if not os.path.exists(self.log_file):
             with open(self.log_file, 'w') as f:
                 f.write('episode,steps,reward,collisions,weather,avg_speed,lane_distance,lat,lon,accel_x,gyro_z\n')
@@ -297,38 +298,23 @@ class SimEnv(object):
         self.speed_controller = PIDLongitudinalController(self.vehicle)
     
     def _set_weather_conditions(self):
-        """Set random weather conditions for training diversity"""
-        weather_type = random.choice(self.weather_types)
-        weather = self.world.get_weather()
+        """Set weather conditions using CARLA preset"""
+        from config import WEATHER_PRESETS
         
-        if weather_type == 'Clear':
-            weather.cloudiness = 0.0
-            weather.precipitation = 0.0
-            weather.precipitation_deposits = 0.0
-            weather.wind_intensity = 0.0
-            weather.fog_density = 0.0
-        elif weather_type == 'Cloudy':
-            weather.cloudiness = 80.0
-            weather.precipitation = 0.0
-            weather.precipitation_deposits = 0.0
-            weather.wind_intensity = 30.0
-            weather.fog_density = 0.0
-        elif weather_type == 'Rain':
-            weather.cloudiness = 100.0
-            weather.precipitation = 80.0
-            weather.precitation_deposits = 50.0
-            weather.wind_intensity = 60.0
-            weather.fog_density = 10.0
-        elif weather_type == 'Fog':
-            weather.cloudiness = 50.0
-            weather.precipitation = 0.0
-            weather.precipitation_deposits = 0.0
-            weather.wind_intensity = 20.0
-            weather.fog_density = 70.0
+        # Use the preset specified in initialization
+        preset_name = self.weather_preset
         
-        self.world.set_weather(weather)
-        self.current_weather = weather_type
-        print(f"Weather set to: {weather_type}")
+        if preset_name in WEATHER_PRESETS:
+            weather = WEATHER_PRESETS[preset_name]
+            self.world.set_weather(weather)
+            self.current_weather = preset_name
+            print(f"Weather set to: {preset_name}")
+        else:
+            # Fallback: use default ClearNoon
+            print(f"Warning: Unknown weather preset '{preset_name}', using ClearNoon")
+            weather = WEATHER_PRESETS['ClearNoon']
+            self.world.set_weather(weather)
+            self.current_weather = 'ClearNoon'
     
     def _spawn_other_vehicles(self):
         """Spawn NPC vehicles with different behaviors"""
@@ -876,8 +862,10 @@ class SimEnv(object):
                     pygame.display.flip()
 
                 # Dynamic weather changes during episode
-                if counter % 100 == 0:  # Check every 100 steps
-                    self.change_weather_during_episode()
+                # Dynamic weather changes disabled for scenario-specific training
+                # Uncomment below to enable dynamic weather changes
+                # if counter % 100 == 0:  # Check every 100 steps
+                #     self.change_weather_during_episode()
                 
                 # Check for collision IMMEDIATELY - no waiting
                 if collision == 1:

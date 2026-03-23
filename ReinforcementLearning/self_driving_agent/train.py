@@ -4,13 +4,18 @@ import torch
 from DQN_Control.replay_buffer import ReplayBuffer
 from DQN_Control.model import DQN
 
-from config import action_map, env_params
+from config import action_map, env_params, TRAINING_SCENARIOS, TRAINING_SCENARIO
 from utils import *
 from environment import SimEnv
 
 def run():
+    """Train the agent on one or more weather scenarios"""
     env = None
     try:
+        # Determine scenarios to train on
+        scenarios = TRAINING_SCENARIOS if isinstance(TRAINING_SCENARIOS, list) else [TRAINING_SCENARIO]
+        print(f"Training on scenarios: {scenarios}")
+        
         # Create weights directory if it doesn't exist
         os.makedirs('weights', exist_ok=True)
         
@@ -22,59 +27,89 @@ def run():
         in_channels = 1
         episodes = 500  # Good balance for faster results
 
+        # Initialize model and replay buffer
         replay_buffer = ReplayBuffer(state_dim, batch_size, buffer_size, device)
         model = DQN(num_actions, state_dim, in_channels, device)
         
-        # Try to load existing model to resume training
-        import glob
-        models = glob.glob(os.path.join('weights', 'model_ep_*_Q'))
-        if models:
-            # Find the model with highest episode number
-            model_numbers = []
-            for m in models:
+        # Training loop for each scenario
+        for scenario in scenarios:
+            print(f"\n{'='*60}")
+            print(f"Starting training for scenario: {scenario}")
+            print(f"{'='*60}\n")
+            
+            # Create scenario-specific weights directory
+            scenario_weights_dir = os.path.join('weights', scenario)
+            os.makedirs(scenario_weights_dir, exist_ok=True)
+            
+            # Create scenario-specific log file
+            log_file = f'training_log_{scenario}.csv'
+            
+            # Try to load existing model for this scenario
+            import glob
+            scenario_models = glob.glob(os.path.join(scenario_weights_dir, 'model_ep_*_Q'))
+            
+            start_ep = 0
+            if scenario_models:
+                # Find the model with highest episode number for this scenario
+                model_numbers = []
+                for m in scenario_models:
+                    try:
+                        basename = os.path.basename(m)
+                        parts = basename.split('_')
+                        num = int(parts[2])
+                        model_numbers.append(num)
+                    except:
+                        continue
+                if model_numbers:
+                    latest_ep = max(model_numbers)
+                    model_path = os.path.join(scenario_weights_dir, f'model_ep_{latest_ep}')
+                    try:
+                        model.load(model_path)
+                        print(f"Resuming training for {scenario} from episode {latest_ep}")
+                        start_ep = latest_ep + 1
+                    except Exception as e:
+                        print(f"Could not load model: {e}")
+            
+            # Set up environment params for this scenario
+            scenario_env_params = env_params.copy()
+            scenario_env_params['start_ep'] = start_ep
+            scenario_env_params['weather_preset'] = scenario  # Use the specific scenario
+            
+            # Override log file for this scenario
+            scenario_env_params['log_file'] = log_file
+            
+            # Force a pre-cleanup of the simulator to avoid connection/sensor crashes
+            print(f"Initializing environment for {scenario}...")
+            env = SimEnv(**scenario_env_params)
+            
+            for ep in range(start_ep, episodes):
+                env.create_actors()
+                should_continue = env.generate_episode(model, replay_buffer, ep, action_map, eval=False)
+                env.reset()
+                if should_continue is False:
+                    break
+            
+            # Save final model for this scenario
+            if 'ep' in locals():
+                model.save(os.path.join(scenario_weights_dir, 'model_ep_{}'.format(ep)))
+                print(f"Final model for {scenario} saved at episode {ep}!")
+                print(f"Log file saved: {log_file}")
+            else:
+                print(f"No episodes were trained for {scenario}, skipping save.")
+            
+            # Clean up environment before next scenario
+            if env is not None:
                 try:
-                    # Extract episode number from filenames like "model_ep_50_Q"
-                    basename = os.path.basename(m)
-                    # Split by underscore: ['model', 'ep', '50', 'Q']
-                    parts = basename.split('_')
-                    num = int(parts[2])  # parts[2] is the episode number
-                    model_numbers.append(num)
-                except:
-                    continue
-            if model_numbers:
-                latest_ep = max(model_numbers)
-                model_path = f'weights/model_ep_{latest_ep}'
-                try:
-                    model.load(model_path)
-                    print(f"Resuming training from episode {latest_ep}")
+                    env.quit()
                 except Exception as e:
-                    print(f"Could not load model: {e}")
-
-        # Find starting episode from loaded model
-        start_ep = 0
-        if models and model_numbers:
-            start_ep = max(model_numbers) + 1
+                    print(f"Error during cleanup: {e}")
+                env = None
         
-        # Use correct start_ep based on loaded model
-        env_params['start_ep'] = start_ep
-        
-        # Force a pre-cleanup of the simulator to avoid connection/sensor crashes
-        print("Initializing environment...")
-        env = SimEnv(**env_params)
-        
-        for ep in range(start_ep, episodes):
-            env.create_actors()
-            should_continue = env.generate_episode(model, replay_buffer, ep, action_map, eval=False)
-            env.reset()
-            if should_continue is False:
-                break
-        
-        # Save final model with correct episode number
-        if 'ep' in locals():
-            model.save('weights/model_ep_{}'.format(ep))
-            print(f"Final model saved at episode {ep}!")
-        else:
-            print("No episodes were trained, skipping save.")
+        print(f"\n{'='*60}")
+        print("Training complete for all scenarios!")
+        print(f"Models saved in: weights/<scenario_name>/")
+        print(f"Logs saved as: training_log_<scenario_name>.csv")
+        print(f"{'='*60}")
         
     except KeyboardInterrupt:
         print("\nTraining interrupted by user. Cleaning up...")
