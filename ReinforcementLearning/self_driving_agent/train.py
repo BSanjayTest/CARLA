@@ -27,13 +27,17 @@ def run():
         
         # Try to load existing model to resume training
         import glob
-        models = glob.glob(os.path.join('weights', 'model_ep_*'))
+        models = glob.glob(os.path.join('weights', 'model_ep_*_Q'))
         if models:
             # Find the model with highest episode number
             model_numbers = []
             for m in models:
                 try:
-                    num = int(os.path.basename(m).split('_')[-1].split('.')[0])
+                    # Extract episode number from filenames like "model_ep_50_Q"
+                    basename = os.path.basename(m)
+                    # Split by underscore: ['model', 'ep', '50', 'Q']
+                    parts = basename.split('_')
+                    num = int(parts[2])  # parts[2] is the episode number
                     model_numbers.append(num)
                 except:
                     continue

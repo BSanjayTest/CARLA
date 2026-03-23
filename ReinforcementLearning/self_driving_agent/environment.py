@@ -669,7 +669,7 @@ class SimEnv(object):
                         except:
                             final_lat, final_lon, final_accel_x, final_gyro_z = 0.0, 0.0, 0.0, 0.0
                         with open(self.log_file, 'a') as f:
-                            f.write(f'{ep},{counter},{self.total_rewards:.2f},{collision},{self.current_weather},{avg_speed:.2f},{avg_lane_dist:.2f},{final_lat:.6f},{final_lon:.6f},{final_accel_x:.2f},{final_gyro_z:.2f}\n')
+                            f.write(f'{self.start_ep + ep},{counter},{self.total_rewards:.2f},{collision},{self.current_weather},{avg_speed:.2f},{avg_lane_dist:.2f},{final_lat:.6f},{final_lon:.6f},{final_accel_x:.2f},{final_gyro_z:.2f}\n')
                         print(f"COLLISION DETECTED (immediate)! Resetting now...")
                     break
                     
@@ -892,7 +892,7 @@ class SimEnv(object):
                     except:
                         final_lat, final_lon, final_accel_x, final_gyro_z = 0.0, 0.0, 0.0, 0.0
                     with open(self.log_file, 'a') as f:
-                        f.write(f'{ep},{counter},{self.total_rewards:.2f},{collision},{self.current_weather},{avg_speed:.2f},{avg_lane_dist:.2f},{final_lat:.6f},{final_lon:.6f},{final_accel_x:.2f},{final_gyro_z:.2f}\n')
+                        f.write(f'{self.start_ep + ep},{counter},{self.total_rewards:.2f},{collision},{self.current_weather},{avg_speed:.2f},{avg_lane_dist:.2f},{final_lat:.6f},{final_lon:.6f},{final_accel_x:.2f},{final_gyro_z:.2f}\n')
                     print(f"COLLISION DETECTED! Resetting immediately...")
                     print(f"Episode {ep} completed - Steps: {counter}, Reward: {self.total_rewards:.2f}, Collision: {collision}")
                     break
@@ -913,7 +913,7 @@ class SimEnv(object):
                         final_lat, final_lon, final_accel_x, final_gyro_z = 0.0, 0.0, 0.0, 0.0
 
                     with open(self.log_file, 'a') as f:
-                        f.write(f'{ep},{counter},{self.total_rewards:.2f},{collision},{self.current_weather},{avg_speed:.2f},{avg_lane_dist:.2f},{final_lat:.6f},{final_lon:.6f},{final_accel_x:.2f},{final_gyro_z:.2f}\n')
+                        f.write(f'{self.start_ep + ep},{counter},{self.total_rewards:.2f},{collision},{self.current_weather},{avg_speed:.2f},{avg_lane_dist:.2f},{final_lat:.6f},{final_lon:.6f},{final_accel_x:.2f},{final_gyro_z:.2f}\n')
 
                     print(f"Episode {ep} completed - Steps: {counter}, Reward: {self.total_rewards:.2f}, Collision: {collision}, Weather: {self.current_weather}")
                     break

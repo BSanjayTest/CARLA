@@ -33,18 +33,19 @@ def run():
         if not os.path.exists(model_path):
             import glob
             # Look for all model files and find the one with the highest episode number
-            models = glob.glob(os.path.join(weights_dir, 'model_ep_*'))
+            models = glob.glob(os.path.join(weights_dir, 'model_ep_*_Q'))
             if models:
                 # Extract numbers from filenames and find the maximum
-                # Note: models are saved as 'model_ep_X' without extension usually, 
-                # but we need to handle potential file extensions from torch.save
+                # Note: models are saved as 'model_ep_X_Q' format
                 model_numbers = []
                 for m in models:
                     try:
-                        # Extract the digits after 'model_ep_'
-                        num = int(os.path.basename(m).split('_')[-1].split('.')[0])
+                        # Extract the digits from 'model_ep_X_Q' -> parts[2] is the number
+                        basename = os.path.basename(m)
+                        parts = basename.split('_')
+                        num = int(parts[2])
                         model_numbers.append(num)
-                    except ValueError:
+                    except (ValueError, IndexError):
                         continue
                 
                 if model_numbers:

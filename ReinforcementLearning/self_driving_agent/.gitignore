@@ -42,8 +42,8 @@ Co-Simulation/
 .DS_Store
 Thumbs.db
 
-# Weights (can be regenerated)
-weights/
+# Weights - uploading these for pretrained models
+# weights/
 
 # Logs
 *.log
