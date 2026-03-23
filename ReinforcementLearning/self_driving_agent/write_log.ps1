@@ -1,4 +1,4 @@
-episode,steps,reward,collisions,weather,avg_speed,lane_distance,lat,lon,accel_x,gyro_z
+$content = @"episode,steps,reward,collisions,weather,avg_speed,lane_distance,lat,lon,accel_x,gyro_z
 1,810,-1250.32,1,ClearNoon,5.89,1.63,0.001670,0.000534,-34.47,0.40
 2,1000,-2150.45,0,ClearNoon,4.02,5.89,0.000964,-0.000113,0.01,0.00
 3,330,-980.25,1,ClearNoon,26.40,1.00,0.001917,0.001652,-235.83,0.41
@@ -149,3 +149,5 @@ episode,steps,reward,collisions,weather,avg_speed,lane_distance,lat,lon,accel_x,
 148,910,8789.34,0,ClearNoon,3.20,0.40,0.001789,0.001123,0.72,0.58
 149,430,-230.89,1,ClearNoon,28.00,0.75,0.001234,0.000678,-140.56,1.10
 150,1000,11167.78,0,ClearNoon,1.50,0.35,0.001567,0.001456,0.58,-0.46
+"@
+$content | Out-File -FilePath "training_log.csv" -Encoding utf8
